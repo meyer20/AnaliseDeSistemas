@@ -2,7 +2,10 @@ export class NodeModel {
   nodeLength: number;
   nodes: Array<{
     nodeName: string,
-    connectToNode: string,
+    connectToNode: Array<{
+      node: string,
+      time: number
+    }>,
     distance: number
   }>;
   deliveryData: {
@@ -11,7 +14,9 @@ export class NodeModel {
     destinations: Array<{
       time: number,
       destinationNode: string,
-      bonus: number
+      bonus: number,
+      timeToDeliver: number,
+      totalTimeToDeliver: number
     }>
   };
 }

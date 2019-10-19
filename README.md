@@ -1,4 +1,28 @@
-# AnaliseSistemas
+# Analise de Algoritmos
+
+**Requisitos mínimos**
+
+NodeJS v10.15.3
+Angular CLI
+
+**Compilar**
+
+1° - Abrir um terminal na raiz do projeto.
+
+2 - Caso o Angular CLI não esteja instalado, executar o comando `npm install -g @angular/cli`. OBS: Neste passo o node já deve estar instalado.
+
+3° - Na raiz do projeto executar o comando `npm install` para baixar a dependencias do projeto
+
+4° - Ainda na raiz, executar o comando `ng serve` para que o servidor com a aplicação possa ser iniciada. OBS: Sem o Angular CLI instalado, não será possível iniciar o servidor.
+
+5° - Após executar o comando `ng serve`, abrir um navegador e navegar até o endereço `http://localhost:4200/`
+
+**Este projeto não está componentizado.**
+
+**Este projeto não possui cobertura de testes.**
+
+**Este projeto foi desenvolvido para o uso na disciplina de Análise de algoritmos.**
+
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.1.1.
 

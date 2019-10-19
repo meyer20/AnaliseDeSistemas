@@ -7,7 +7,7 @@ import { NodeModel } from './models/node.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit{
-  title = 'AnaliseSistemas';
+  title = 'Analise de Algoritmos';
   file;
   currentStep = 0;
   nodeData;
@@ -24,7 +24,6 @@ export class AppComponent implements OnInit{
       const fileReader: FileReader = new FileReader();
       fileReader.onload = (e) => {
         this.file.content = fileReader.result;
-        console.log(fileReader.result);
       };
       fileReader.readAsText(this.file);
     }
@@ -40,8 +39,9 @@ export class AppComponent implements OnInit{
   createNodes() {
     let fileContent = this.file.content;
     let counter = 0;
+    fileContent = fileContent.replace(/‘/g, '\'');
+    fileContent = fileContent.replace(/’/g, '\'');
     fileContent = fileContent.split('\n');
-    console.log(fileContent);
     fileContent.forEach((data, index) => {
       if (data.trim().length === 1) {
         data = data.trim();
@@ -87,23 +87,54 @@ export class AppComponent implements OnInit{
         });
       }
     });
-    console.log(this.nodeData);
   }
 
   setNodesConnections() {
     for (let d1 = 0; d1 < this.destinations.length; d1++) {
-      let shouldBreak = false;
-      for (let d2 = d1; d2 < this.destinations[d1].length; d2++) {
+      for (let d2 = 0; d2 < this.destinations.length; d2++) {
         if (Number(this.destinations[d1][d2]) !== 0) {
-          this.nodeData.nodes[d1].connectToNode = this.nodeData.nodes[d2].nodeName;
-          this.nodeData.nodes[d1].distance = Number(this.destinations[d1][d2]);
-          shouldBreak = true;
-          break;
-        } else if (d2 === this.nodeData.nodeLength - 1) {
-          this.nodeData.nodes[this.nodeData.nodeLength - 1].connectToNode = this.nodeData.nodes[0].nodeName;
-          this.nodeData.nodes[this.nodeData.nodeLength - 1].distance = Number(this.destinations[this.nodeData.nodeLength - 1][0]);
+          if (!this.nodeData.nodes[d1].connectToNode) {
+            this.nodeData.nodes[d1].connectToNode = [];
+          }
+          this.nodeData.nodes[d1].connectToNode.push({
+            node: this.nodeData.nodes[d2].nodeName,
+            time: Number(this.destinations[d1][d2])
+          });
         }
       }
     }
+  }
+
+  calculateDeliveries() {
+    this.nextStep();
+    for (let i = 0; i < this.nodeData.deliveryData.destinations.length; i++) {
+      const destiny = this.nodeData.deliveryData.destinations[i].destinationNode;
+
+      for (let y = 0; y < this.nodeData.nodes.length; y++) {
+        if (this.nodeData.nodes[y].nodeName === destiny) {
+          // cheguei
+          break;
+        } else {
+          if (!this.nodeData.deliveryData.destinations[i].totalTimeToDeliver) {
+            this.nodeData.deliveryData.destinations[i].timeToDeliver = 0;
+            this.nodeData.deliveryData.destinations[i].totalTimeToDeliver = 0;
+          }
+
+          if (this.nodeData.nodes[y + 1]) {
+            this.nodeData.nodes[y].connectToNode.forEach(node => {
+              if (this.nodeData.nodes[y + 1].nodeName === node.node) {
+                // x2 já contabiliza a volta
+                this.nodeData.deliveryData.destinations[i].timeToDeliver += node.time;
+                this.nodeData.deliveryData.destinations[i].totalTimeToDeliver += node.time * 2;
+              }
+            });
+          }
+        }
+      }
+    }
+  }
+
+  refreshPage() {
+    window.location.reload();
   }
 }

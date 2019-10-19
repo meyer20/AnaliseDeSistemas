@@ -3,7 +3,7 @@
     <nav class="nav nav-pills nav-justified">
       <a class="nav-item nav-link" [ngClass]="{'active': currentStep === 0}">Upload do arquivo</a>
       <a class="nav-item nav-link" [ngClass]="{'active': currentStep === 1}">Resultados</a>
-      <a class="nav-item nav-link" [ngClass]="{'active': currentStep === 2}">Caminhos</a>
+      <a class="nav-item nav-link" [ngClass]="{'active': currentStep === 2}">Entregas</a>
     </nav>
   </div>
   <div class="content mt-5">
@@ -20,20 +20,20 @@
         <hr class="my-4">
         <pre>{{ file.content }}</pre>
         <div class="float-right">
-          <button type="button" class="btn btn-danger">Deu zica, voltar.</button>
+          <button type="button" class="btn btn-danger" (click)="refreshPage()">Deu zica, voltar.</button>
           <button type="button" class="btn btn-success ml-2" (click)="nextStep()">Tudo certo, prosseguir!</button>
         </div>
       </div>
     </div>
     <div [hidden]="currentStep !== 1">
       <h1 *ngIf="file">O arquivo {{ file.name }} gerou os seguintes resultados:</h1>
-      <h3 *ngIf="nodeData.nodes" class="mt-4">Vértices: {{ nodeData.nodes.length }}</h3>
+      <h3 *ngIf="nodeData.nodes" class="mt-4">{{ nodeData.nodes.length }} destinos</h3>
       <div *ngIf="nodeData.nodes && nodeData.nodes.length" class="row mt-3">
         <div *ngFor="let node of nodeData.nodes" class="col-md-3">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Vértice: {{ node.nodeName }}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">Conectado ao vértice: {{ node.connectToNode }} com distância: {{ node.distance }}</h6>
+              <h5 class="card-title">Destino: {{ node.nodeName }}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">Conectado a {{ node.connectToNode.length }} destinos.</h6>
               <code>
                 {{ JSON.stringify(node) }}
               </code>
@@ -42,12 +42,13 @@
         </div>
       </div>
       <div *ngIf="nodeData.deliveryData" class="mt-3">
-        <h3>Entregas: {{ nodeData.deliveryData.destinations.length }}</h3>
+        <hr>
+        <h3>{{ nodeData.deliveryData.destinations.length }} entregas</h3>
         <div *ngIf="nodeData.deliveryData.destinations.length" class="row mt-3">
           <div *ngFor="let deliver of nodeData.deliveryData.destinations" class="col-md-3">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">Entrega ao vértice: {{ deliver.destinationNode }}</h5>
+                <h5 class="card-title">Entrega ao destino: {{ deliver.destinationNode }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Iniciando do tempo : {{ deliver.time }} com bônus de: {{ deliver.bonus }}R$</h6>
                 <code>
                   {{ JSON.stringify(deliver) }}
@@ -55,13 +56,55 @@
               </div>
             </div>
           </div>
+          <div class="col-md-3">
+            <div class="card">
+              <div class="card-body text-center">
+                <h5 class="card-title">Cálculo das entregas</h5>
+                <button type="button" class="btn btn-success" (click)="calculateDeliveries()">Calcular</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div *ngIf="nodeData" class="mt-3 mb-3">
-        <h1 class="mb-3">Objeto geral</h1>
+        <hr>
+        <h1 class="mb-3">Objeto completo</h1>
         <code>
           {{ JSON.stringify(nodeData, null, 2)}}
         </code>
+      </div>
+    </div>
+    <div [hidden]="currentStep !== 2">
+      <h1 *ngIf="file">Entregas a serem efetuadas</h1>
+      <div *ngIf="nodeData.deliveryData" class="mt-3">
+        <h3>{{ nodeData.deliveryData.destinations.length }} entregas</h3>
+        <div *ngIf="nodeData.deliveryData.destinations.length" class="row mt-3">
+          <div *ngFor="let deliver of nodeData.deliveryData.destinations" class="col-md-3">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Entrega ao destino: {{ deliver.destinationNode }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">Tempo de entrega até o destino: {{ deliver.timeToDeliver }}.</h6>
+                <h6 class="card-subtitle mb-2 text-muted">O bônus foi: {{ deliver.bonus }}R$.</h6>
+                <h6 class="card-subtitle mb-2 text-muted">O tempo total da entrega(ida + volta) foi: {{ deliver.totalTimeToDeliver }}.</h6>
+                <code>
+                  {{ JSON.stringify(deliver) }}
+                </code>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card">
+              <div class="card-body text-center">
+                <h5 class="card-title">Deseja iniciar novamente o algoritmo?</h5>
+                <button type="button" class="btn btn-success" (click)="refreshPage()">Recomeçar</button>
+              </div>
+            </div>
+          </div>
+          <div class="w-100 mt-3 text-center">
+            <h2>Selo de aferição do algoritmo</h2>
+            <img src="https://blogfuxicodosertao.com.br/wp-content/uploads/2018/04/unnamed.gif" class="pb-2">
+          </div>
+        </div>
       </div>
     </div>
   </div>
