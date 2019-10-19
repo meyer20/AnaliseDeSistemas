@@ -2,7 +2,8 @@
 
 **Requisitos mínimos**
 
-NodeJS v10.15.3
+[NodeJS](https://nodejs.org/dist/v10.16.3/node-v10.16.3-x64.msi) v10.15.3 ou superior
+
 Angular CLI
 
 **Compilar**
