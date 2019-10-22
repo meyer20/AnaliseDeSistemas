@@ -41,6 +41,7 @@ export class AppComponent implements OnInit{
     let counter = 0;
     fileContent = fileContent.replace(/‘/g, '\'');
     fileContent = fileContent.replace(/’/g, '\'');
+    fileContent = fileContent.replace(/\uFFFD/g, '\'');
     fileContent = fileContent.split('\n');
     fileContent.forEach((data, index) => {
       if (data.trim().length === 1) {
@@ -93,13 +94,18 @@ export class AppComponent implements OnInit{
     for (let d1 = 0; d1 < this.destinations.length; d1++) {
       for (let d2 = 0; d2 < this.destinations.length; d2++) {
         if (Number(this.destinations[d1][d2]) !== 0) {
+          if (!this.nodeData.nodes[d1]) {
+            return;
+          }
           if (!this.nodeData.nodes[d1].connectToNode) {
             this.nodeData.nodes[d1].connectToNode = [];
           }
-          this.nodeData.nodes[d1].connectToNode.push({
-            node: this.nodeData.nodes[d2].nodeName,
-            time: Number(this.destinations[d1][d2])
-          });
+          if (this.nodeData.nodes[d2]) {
+            this.nodeData.nodes[d1].connectToNode.push({
+              node: this.nodeData.nodes[d2].nodeName,
+              time: Number(this.destinations[d1][d2])
+            });
+          }
         }
       }
     }
@@ -133,6 +139,59 @@ export class AppComponent implements OnInit{
       }
     }
   }
+
+  // calculate() {
+  //   this.nextStep();
+  //   let ways = [];
+  //   for (let i = 0; i < this.nodeData.deliveryData.destinations.length; i++) {
+  //     const destiny = this.nodeData.deliveryData.destinations[i].destinationNode;
+  //
+  //     for (let y = 0; y < this.nodeData.nodes.length; y++) {
+  //       if (this.nodeData.nodes[y].nodeName === destiny) {
+  //         // cheguei
+  //         break;
+  //       } else {
+  //         if (this.nodeData.connectToNode.length) {
+  //           for (let x = 0; x < this.nodeData.connectToNode.length; x++) {
+  //             // if (!ways.length) {
+  //             // }
+  //             if (this.nodeData.connectToNode[y].nodeName === destiny) {
+  //               if (!ways[i][destiny]) {
+  //                 ways.push({
+  //                   destiny: {
+  //                     path: this.nodeData.connectToNode[y].nodeName,
+  //                     cost: this.nodeData.connectToNode[y].time,
+  //                   }
+  //                 });
+  //               } else {
+  //                 ways[i][destiny].path += this.nodeData.connectToNode[y].nodeName;
+  //                 ways[i][destiny].cost += this.nodeData.connectToNode[y].time;
+  //               }
+  //               break;
+  //             } else {
+  //               break;
+  //             }
+  //           }
+  //         }
+  //
+  //         if (!this.nodeData.deliveryData.destinations[i].totalTimeToDeliver) {
+  //           this.nodeData.deliveryData.destinations[i].timeToDeliver = 0;
+  //           this.nodeData.deliveryData.destinations[i].totalTimeToDeliver = 0;
+  //         }
+  //
+  //         if (this.nodeData.nodes[y + 1]) {
+  //           this.nodeData.nodes[y].connectToNode.forEach(node => {
+  //             if (this.nodeData.nodes[y + 1].nodeName === node.node) {
+  //               // x2 já contabiliza a volta
+  //               this.nodeData.deliveryData.destinations[i].timeToDeliver += node.time;
+  //               this.nodeData.deliveryData.destinations[i].totalTimeToDeliver += node.time * 2;
+  //             }
+  //           });
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   refreshPage() {
     window.location.reload();
