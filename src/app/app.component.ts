@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { NodeModel } from './models/node.model';
+import {Component, OnInit} from '@angular/core';
+import {NodeModel} from './models/node.model';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
   title = 'Analise de Algoritmos';
   file;
   currentStep = 0;
@@ -64,7 +64,7 @@ export class AppComponent implements OnInit{
               this.nodeData.nodes = [];
             }
             this.nodeData.nodes.push({
-              nodeName: node.replace(/\'/gi, '')
+              nodeName: node.replace(/\'/gi, '').trim()
             });
           }
         });
@@ -100,6 +100,7 @@ export class AppComponent implements OnInit{
           if (!this.nodeData.nodes[d1].connectToNode) {
             this.nodeData.nodes[d1].connectToNode = [];
           }
+          // if (this.nodeData.nodes[d2] && d2 > d1) {
           if (this.nodeData.nodes[d2]) {
             this.nodeData.nodes[d1].connectToNode.push({
               node: this.nodeData.nodes[d2].nodeName,
@@ -109,6 +110,9 @@ export class AppComponent implements OnInit{
         }
       }
     }
+    this.findBestWays();
+    this.solve(this.nodeData.nodes);
+    console.log(this.nodeData);
   }
 
   calculateDeliveries() {
@@ -140,58 +144,77 @@ export class AppComponent implements OnInit{
     }
   }
 
-  // calculate() {
-  //   this.nextStep();
-  //   let ways = [];
-  //   for (let i = 0; i < this.nodeData.deliveryData.destinations.length; i++) {
-  //     const destiny = this.nodeData.deliveryData.destinations[i].destinationNode;
-  //
-  //     for (let y = 0; y < this.nodeData.nodes.length; y++) {
-  //       if (this.nodeData.nodes[y].nodeName === destiny) {
-  //         // cheguei
-  //         break;
-  //       } else {
-  //         if (this.nodeData.connectToNode.length) {
-  //           for (let x = 0; x < this.nodeData.connectToNode.length; x++) {
-  //             // if (!ways.length) {
-  //             // }
-  //             if (this.nodeData.connectToNode[y].nodeName === destiny) {
-  //               if (!ways[i][destiny]) {
-  //                 ways.push({
-  //                   destiny: {
-  //                     path: this.nodeData.connectToNode[y].nodeName,
-  //                     cost: this.nodeData.connectToNode[y].time,
-  //                   }
-  //                 });
-  //               } else {
-  //                 ways[i][destiny].path += this.nodeData.connectToNode[y].nodeName;
-  //                 ways[i][destiny].cost += this.nodeData.connectToNode[y].time;
-  //               }
-  //               break;
-  //             } else {
-  //               break;
-  //             }
-  //           }
-  //         }
-  //
-  //         if (!this.nodeData.deliveryData.destinations[i].totalTimeToDeliver) {
-  //           this.nodeData.deliveryData.destinations[i].timeToDeliver = 0;
-  //           this.nodeData.deliveryData.destinations[i].totalTimeToDeliver = 0;
-  //         }
-  //
-  //         if (this.nodeData.nodes[y + 1]) {
-  //           this.nodeData.nodes[y].connectToNode.forEach(node => {
-  //             if (this.nodeData.nodes[y + 1].nodeName === node.node) {
-  //               // x2 já contabiliza a volta
-  //               this.nodeData.deliveryData.destinations[i].timeToDeliver += node.time;
-  //               this.nodeData.deliveryData.destinations[i].totalTimeToDeliver += node.time * 2;
-  //             }
-  //           });
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  findBestWays() {
+    const destinies = [];
+    this.nodeData.nodes.forEach(node => {
+      node.checked = false;
+      destinies.push(node);
+    });
+
+    return destinies;
+  }
+
+  solve(graph) {
+    const solutions = {};
+    const startPoint = this.nodeData.nodes[0];
+    for (let i = 0; i < this.nodeData.nodes.length; i++) {
+      solutions[this.nodeData.nodes[i].nodeName] = this.nodeData.nodes[i];
+      solutions[this.nodeData.nodes[i].nodeName].distance = 0;
+    }
+
+    // tslint:disable-next-line:forin
+    for (const n in solutions) {
+      let parent = null;
+      let nearest = null;
+      let dist = Infinity;
+
+      while (!solutions[n].checked) {
+        if (!solutions[n]) {
+          continue;
+        }
+
+        if (solutions[n].connectToNode.length === 0) {
+          break;
+        }
+        const ndist = solutions[n].distance;
+        const adj = graph.filter(t => t.nodeName === n)[0];
+        adj.connectToNode.forEach(connectedNode => {
+          const d = connectedNode.time + ndist;
+          // let parentNode = Object.keys(solutions).indexOf(n) as any;
+          // console.log(this.nodeData.nodes[parentNode].nodeName);
+          // if (parentNode !== -1 && this.nodeData.nodes[parentNode].nodeName !== n && this.nodeData.nodes[parentNode].nodeName !== -1) {
+          //   parentNode = this.nodeData.nodes[parentNode];
+          // }
+          // if (d < dist && connectedNode.node !== parentNode.nodeName) {
+          if (d < dist) {
+            parent = solutions[n];
+            nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
+            dist = d;
+            solutions[n].checked = true;
+          }
+        });
+      }
+
+      if (dist === Infinity) {
+        break;
+      }
+
+      if (!solutions[n].nearest) {
+        solutions[n].nearest = '';
+      }
+
+      solutions[n].nearest += solutions[n].nodeName + ' | ' + nearest.nodeName + ',';
+      solutions[n].distance = dist;
+      solutions[n].checked = true;
+    }
+    console.log(solutions);
+
+    return solutions;
+  }
+
+  createDjisktraObj() {
+
+  }
 
   refreshPage() {
     window.location.reload();
