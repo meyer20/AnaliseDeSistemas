@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {NodeModel} from './models/node.model';
+import { Component, OnInit } from '@angular/core';
+import { NodeModel } from './models/node.model';
 
 @Component({
   selector: 'app-root',
@@ -91,6 +91,7 @@ export class AppComponent implements OnInit {
   }
 
   setNodesConnections() {
+    // this.destinations.splice(0, 1); // Remove first line (contains destinations index)
     for (let d1 = 0; d1 < this.destinations.length; d1++) {
       for (let d2 = 0; d2 < this.destinations.length; d2++) {
         if (Number(this.destinations[d1][d2]) !== 0) {
@@ -100,11 +101,12 @@ export class AppComponent implements OnInit {
           if (!this.nodeData.nodes[d1].connectToNode) {
             this.nodeData.nodes[d1].connectToNode = [];
           }
-          // if (this.nodeData.nodes[d2] && d2 > d1) {
+
           if (this.nodeData.nodes[d2]) {
             this.nodeData.nodes[d1].connectToNode.push({
               node: this.nodeData.nodes[d2].nodeName,
-              time: Number(this.destinations[d1][d2])
+              time: Number(this.destinations[d1][d2]),
+              index: d2
             });
           }
         }
@@ -173,23 +175,30 @@ export class AppComponent implements OnInit {
           continue;
         }
 
-        if (solutions[n].connectToNode.length === 0) {
+        if (!solutions[n].connectToNode || solutions[n].connectToNode.length === 0) {
           break;
         }
         const ndist = solutions[n].distance;
         const adj = graph.filter(t => t.nodeName === n)[0];
-        adj.connectToNode.forEach(connectedNode => {
-          const d = connectedNode.time + ndist;
-          // let parentNode = Object.keys(solutions).indexOf(n) as any;
-          // console.log(this.nodeData.nodes[parentNode].nodeName);
-          // if (parentNode !== -1 && this.nodeData.nodes[parentNode].nodeName !== n && this.nodeData.nodes[parentNode].nodeName !== -1) {
+        adj.connectToNode.forEach((connectedNode, index) => {
+          // const d = connectedNode.time + ndist;
+          // let parentNode = Object.keys(solutions).indexOf(n) - 1 as any;
+          // if (parentNode !== -1) {
+          //   console.log(this.nodeData.nodes[parentNode].nodeName);
           //   parentNode = this.nodeData.nodes[parentNode];
-          // }
-          // if (d < dist && connectedNode.node !== parentNode.nodeName) {
-          if (d < dist) {
+          // } connectedNode.node !== parentNode.nodeName
+          const nodePositionIndex = this.nodeData.nodes.findIndex(node => node.nodeName === adj.nodeName);
+          if (connectedNode.time + ndist < dist &&
+            (connectedNode.index >= nodePositionIndex || nodePositionIndex === this.nodeData.nodes.length - 1)) {
             parent = solutions[n];
             nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
-            dist = d;
+            dist = connectedNode.time + ndist;
+          } else {
+            parent = solutions[n];
+            nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
+            dist = connectedNode.time + ndist;
+          }
+          if (index === adj.connectToNode.length - 1) {
             solutions[n].checked = true;
           }
         });
@@ -204,7 +213,7 @@ export class AppComponent implements OnInit {
       }
 
       solutions[n].nearest += solutions[n].nodeName + ' | ' + nearest.nodeName + ',';
-      solutions[n].distance = dist;
+      solutions[n].distance += dist;
       solutions[n].checked = true;
     }
     console.log(solutions);
