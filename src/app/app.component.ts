@@ -13,6 +13,8 @@ export class AppComponent implements OnInit {
   nodeData;
   destinations = [];
   JSON = JSON;
+  solutions = {};
+  distances = {};
 
   ngOnInit() {
     this.nodeData = new NodeModel();
@@ -91,7 +93,6 @@ export class AppComponent implements OnInit {
   }
 
   setNodesConnections() {
-    // this.destinations.splice(0, 1); // Remove first line (contains destinations index)
     for (let d1 = 0; d1 < this.destinations.length; d1++) {
       for (let d2 = 0; d2 < this.destinations.length; d2++) {
         if (Number(this.destinations[d1][d2]) !== 0) {
@@ -101,12 +102,10 @@ export class AppComponent implements OnInit {
           if (!this.nodeData.nodes[d1].connectToNode) {
             this.nodeData.nodes[d1].connectToNode = [];
           }
-
           if (this.nodeData.nodes[d2]) {
             this.nodeData.nodes[d1].connectToNode.push({
               node: this.nodeData.nodes[d2].nodeName,
-              time: Number(this.destinations[d1][d2]),
-              index: d2
+              time: Number(this.destinations[d1][d2])
             });
           }
         }
@@ -114,34 +113,26 @@ export class AppComponent implements OnInit {
     }
     this.findBestWays();
     this.solve(this.nodeData.nodes);
-    console.log(this.nodeData);
   }
 
   calculateDeliveries() {
     this.nextStep();
+    // this.orderDeliveryDestiniesByBonus();
+    this.orderDeliveryDestiniesByTime();
+    this.nodeData.deliveryData.timeWasted = 0;
+    this.nodeData.deliveryData.totalBonus = 0;
+    this.nodeData.deliveryData.deliveredCount = 0;
     for (let i = 0; i < this.nodeData.deliveryData.destinations.length; i++) {
       const destiny = this.nodeData.deliveryData.destinations[i].destinationNode;
+      this.nodeData.deliveryData.destinations[i].done = false;
 
-      for (let y = 0; y < this.nodeData.nodes.length; y++) {
-        if (this.nodeData.nodes[y].nodeName === destiny) {
-          // cheguei
-          break;
-        } else {
-          if (!this.nodeData.deliveryData.destinations[i].totalTimeToDeliver) {
-            this.nodeData.deliveryData.destinations[i].timeToDeliver = 0;
-            this.nodeData.deliveryData.destinations[i].totalTimeToDeliver = 0;
-          }
-
-          if (this.nodeData.nodes[y + 1]) {
-            this.nodeData.nodes[y].connectToNode.forEach(node => {
-              if (this.nodeData.nodes[y + 1].nodeName === node.node) {
-                // x2 já contabiliza a volta
-                this.nodeData.deliveryData.destinations[i].timeToDeliver += node.time;
-                this.nodeData.deliveryData.destinations[i].totalTimeToDeliver += node.time * 2;
-              }
-            });
-          }
-        }
+      if (this.distances[destiny] &&
+        this.nodeData.deliveryData.timeWasted <= Number(this.nodeData.deliveryData.destinations[i].time)) {
+        this.nodeData.deliveryData.timeWasted += (this.distances[destiny].time * 2);
+        this.nodeData.deliveryData.totalBonus += Number(this.nodeData.deliveryData.destinations[i].bonus);
+        this.nodeData.deliveryData.deliveredCount++;
+        this.nodeData.deliveryData.destinations[i].done = true;
+        this.nodeData.deliveryData.destinations[i].deliveredAt = this.nodeData.deliveryData.timeWasted;
       }
     }
   }
@@ -157,72 +148,156 @@ export class AppComponent implements OnInit {
   }
 
   solve(graph) {
-    const solutions = {};
-    const startPoint = this.nodeData.nodes[0];
-    for (let i = 0; i < this.nodeData.nodes.length; i++) {
-      solutions[this.nodeData.nodes[i].nodeName] = this.nodeData.nodes[i];
-      solutions[this.nodeData.nodes[i].nodeName].distance = 0;
-    }
+    this.solutions[this.nodeData.nodes[0].nodeName] = this.nodeData.nodes[0];
+    this.solutions[this.nodeData.nodes[0].nodeName].distance = 0;
 
-    // tslint:disable-next-line:forin
-    for (const n in solutions) {
+    for (let n = 0; n < this.nodeData.nodes.length; n++) {
       let parent = null;
       let nearest = null;
       let dist = Infinity;
+      let whileCounter = 0;
 
-      while (!solutions[n].checked) {
-        if (!solutions[n]) {
+      while (!this.nodeData.nodes[n].checked) {
+        if (!this.nodeData.nodes[n]) {
           continue;
         }
 
-        if (!solutions[n].connectToNode || solutions[n].connectToNode.length === 0) {
+        if (this.nodeData.nodes[n].connectToNode.length === 0) {
           break;
         }
-        const ndist = solutions[n].distance;
-        const adj = graph.filter(t => t.nodeName === n)[0];
-        adj.connectToNode.forEach((connectedNode, index) => {
-          // const d = connectedNode.time + ndist;
-          // let parentNode = Object.keys(solutions).indexOf(n) - 1 as any;
-          // if (parentNode !== -1) {
-          //   console.log(this.nodeData.nodes[parentNode].nodeName);
-          //   parentNode = this.nodeData.nodes[parentNode];
-          // } connectedNode.node !== parentNode.nodeName
-          const nodePositionIndex = this.nodeData.nodes.findIndex(node => node.nodeName === adj.nodeName);
-          if (connectedNode.time + ndist < dist &&
-            (connectedNode.index >= nodePositionIndex || nodePositionIndex === this.nodeData.nodes.length - 1)) {
-            parent = solutions[n];
+        const ndist = this.nodeData.nodes[n].distance;
+        this.nodeData.nodes[n].connectToNode.forEach(connectedNode => {
+          whileCounter++;
+          const d = connectedNode.time + ndist;
+          if (d < dist && (!this.solutions[connectedNode.node] || n === this.nodeData.nodes.length - 1)) {
+          // if (d < dist && n !== this.nodeData.nodes.length - 1) {
+            parent = this.nodeData.nodes[n];
             nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
-            dist = connectedNode.time + ndist;
-          } else {
-            parent = solutions[n];
-            nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
-            dist = connectedNode.time + ndist;
-          }
-          if (index === adj.connectToNode.length - 1) {
-            solutions[n].checked = true;
+            dist = d;
+            this.nodeData.nodes[n].checked = true;
+          } else if (n === this.nodeData.nodes.length - 1) {
+            this.nodeData.nodes[n].checked = true;
           }
         });
+
+        if (whileCounter >= this.nodeData.nodes[n].connectToNode.length - 1) {
+          this.nodeData.nodes[n].checked = true;
+        }
       }
 
       if (dist === Infinity) {
         break;
       }
 
-      if (!solutions[n].nearest) {
-        solutions[n].nearest = '';
+      if (!this.nodeData.nodes[n].nearest) {
+        this.nodeData.nodes[n].nearest = '';
       }
 
-      solutions[n].nearest += solutions[n].nodeName + ' | ' + nearest.nodeName + ',';
-      solutions[n].distance += dist;
-      solutions[n].checked = true;
+      this.nodeData.nodes[n].nearest += nearest.nodeName;
+      let incrementalDistance = 0;
+      if (n > 0) {
+        incrementalDistance = this.solutions[this.nodeData.nodes[n].connectToNode[0].node].distance;
+      }
+      this.nodeData.nodes[n].distance = dist + incrementalDistance;
+      this.nodeData.nodes[n].checked = true;
+      if (this.nodeData.nodes[n + 1]) {
+        this.solutions[this.nodeData.nodes[n + 1].nodeName] = this.nodeData.nodes[n + 1];
+        this.solutions[this.nodeData.nodes[n + 1].nodeName].distance = 0;
+      } else {
+        break;
+      }
     }
-    console.log(solutions);
 
-    return solutions;
+    this.createDistancesTable();
+
+    return this.solutions;
   }
 
-  createDjisktraObj() {
+  createDistancesTable() {
+    const startPoint = this.nodeData.nodes[0];
+    this.distances[startPoint.nodeName] = {
+      time: 0,
+      path: null
+    };
+    startPoint.connectToNode.forEach(childNode => {
+      this.connectPoints(this.distances, childNode);
+      if (this.solutions[childNode.node].connectToNode && this.solutions[childNode.node].connectToNode.length) {
+        // this.connectPoints(teste, childNode);
+        // if (teste[childNode.node] === undefined) {
+        //   teste[childNode.node] = {
+        //     time: childNode.time,
+        //     path: childNode.node
+        //   };
+        //   this.solutions[childNode.node].connectToNode.forEach(connection => {
+        //     if (teste[connection.node] === undefined) {
+        //       teste[connection.node] = {
+        //         time: childNode.time + connection.time,
+        //         path: childNode.node + connection.node
+        //       };
+        //     }
+        //   });
+        // }
+      }
+    });
+    // Object.keys(teste).forEach(node => {
+    //   if (this.solutions[node] && this.solutions[node].connectToNode && this.solutions[node].connectToNode.length) {
+    //     this.solutions[node].connectToNode.forEach(item => {
+    //       this.connectPoints(teste, item);
+    //     });
+    //   }
+    // });
+  }
 
+  connectPoints(distances, childNode) {
+    if (distances[childNode.node] === undefined) {
+      distances[childNode.node] = {
+        time: childNode.time,
+        path: childNode.node
+      };
+      this.solutions[childNode.node].connectToNode.forEach(connection => {
+        if (distances[connection.node] === undefined) {
+          distances[connection.node] = {
+            time: childNode.time + connection.time,
+            path: childNode.node + connection.node
+          };
+        }
+        this.connectPoints(distances, connection);
+      });
+    }
+  }
+
+  orderDeliveryDestiniesByBonus() {
+    this.nodeData.deliveryData.destinations.sort((a, b) => {
+      if (Number(a.bonus) > Number(b.bonus)) {
+        return -1;
+      } else if (Number(a.bonus) < Number(b.bonus)) {
+        return 1;
+      } else {
+        if (Number(a.bonus) > Number(b.bonus)) {
+          return -1;
+        } else if (Number(a.bonus) < Number(b.bonus)) {
+          return 1;
+        }
+        return 0;
+      }
+    });
+  }
+
+  orderDeliveryDestiniesByTime() {
+    this.nodeData.deliveryData.destinations.sort((a, b) => {
+      if (Number(a.time) < Number(b.time)) {
+        return -1;
+      } else if (Number(a.time) > Number(b.time)) {
+        return 1;
+      } else {
+        if (Number(a.time) < Number(b.time)) {
+          return -1;
+        } else if (Number(a.time) > Number(b.time)) {
+          return 1;
+        }
+        return 0;
+      }
+    });
   }
 
   refreshPage() {

@@ -77,10 +77,12 @@
     <div [hidden]="currentStep !== 2">
       <h1 *ngIf="file">Entregas a serem efetuadas</h1>
       <div *ngIf="nodeData.deliveryData" class="mt-3">
-        <h3>{{ nodeData.deliveryData.destinations.length }} entregas</h3>
+        <h3>{{ nodeData.deliveryData.deliveredCount }} entregas efetuadas</h3>
+        <h4>Tempo gasto: {{ nodeData.deliveryData.timeWasted }}</h4>
+        <h4>{{ nodeData.deliveryData.totalBonus }}R$ em bônus</h4>
         <div *ngIf="nodeData.deliveryData.destinations.length" class="row mt-3">
           <div *ngFor="let deliver of nodeData.deliveryData.destinations" class="col-md-3">
-            <div class="card">
+            <div class="card" *ngIf="deliver.done">
               <div class="card-body">
                 <h5 class="card-title">Entrega ao destino: {{ deliver.destinationNode }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">Tempo de entrega até o destino: {{ deliver.timeToDeliver }}.</h6>
