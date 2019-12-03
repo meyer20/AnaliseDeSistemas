@@ -1,5 +1,7 @@
 # Analise de Algoritmos
 
+[Complexidades](https://github.com/meyer20/AnaliseDeSistemas/blob/master/complexidades)
+
 **Requisitos mínimos**
 
 [NodeJS](https://nodejs.org/dist/v10.16.3/node-v10.16.3-x64.msi) v10.15.3 ou superior
