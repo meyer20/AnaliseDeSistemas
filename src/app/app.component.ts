@@ -111,7 +111,6 @@ export class AppComponent implements OnInit {
         }
       }
     }
-    this.findBestWays();
     this.solve(this.nodeData.nodes);
   }
 
@@ -135,16 +134,6 @@ export class AppComponent implements OnInit {
         this.nodeData.deliveryData.destinations[i].deliveredAt = this.nodeData.deliveryData.timeWasted;
       }
     }
-  }
-
-  findBestWays() {
-    const destinies = [];
-    this.nodeData.nodes.forEach(node => {
-      node.checked = false;
-      destinies.push(node);
-    });
-
-    return destinies;
   }
 
   solve(graph) {
