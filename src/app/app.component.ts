@@ -170,7 +170,6 @@ export class AppComponent implements OnInit {
           whileCounter++;
           const d = connectedNode.time + ndist;
           if (d < dist && (!this.solutions[connectedNode.node] || n === this.nodeData.nodes.length - 1)) {
-          // if (d < dist && n !== this.nodeData.nodes.length - 1) {
             parent = this.nodeData.nodes[n];
             nearest = graph.filter(r => r.nodeName === connectedNode.node)[0];
             dist = d;
@@ -208,44 +207,7 @@ export class AppComponent implements OnInit {
       }
     }
 
-    this.createDistancesTable();
-
     return this.solutions;
-  }
-
-  createDistancesTable() {
-    const startPoint = this.nodeData.nodes[0];
-    this.distances[startPoint.nodeName] = {
-      time: 0,
-      path: null
-    };
-    startPoint.connectToNode.forEach(childNode => {
-      this.connectPoints(this.distances, childNode);
-      if (this.solutions[childNode.node].connectToNode && this.solutions[childNode.node].connectToNode.length) {
-        // this.connectPoints(teste, childNode);
-        // if (teste[childNode.node] === undefined) {
-        //   teste[childNode.node] = {
-        //     time: childNode.time,
-        //     path: childNode.node
-        //   };
-        //   this.solutions[childNode.node].connectToNode.forEach(connection => {
-        //     if (teste[connection.node] === undefined) {
-        //       teste[connection.node] = {
-        //         time: childNode.time + connection.time,
-        //         path: childNode.node + connection.node
-        //       };
-        //     }
-        //   });
-        // }
-      }
-    });
-    // Object.keys(teste).forEach(node => {
-    //   if (this.solutions[node] && this.solutions[node].connectToNode && this.solutions[node].connectToNode.length) {
-    //     this.solutions[node].connectToNode.forEach(item => {
-    //       this.connectPoints(teste, item);
-    //     });
-    //   }
-    // });
   }
 
   connectPoints(distances, childNode) {
