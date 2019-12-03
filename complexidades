@@ -1,0 +1,4 @@
+solve-> O(n³) -> n(4n² +3nm)
+connectPoints -> O(n)
+calculateDistances -> O(n) -> 2n
+setNodesConnection -> O(n²) -> 2n²
